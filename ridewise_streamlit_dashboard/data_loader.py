@@ -19,7 +19,7 @@ def load_data():
 
 @st.cache_data(show_spinner="Loading data...")
 def load_data_segments():
-    df = pd.read_csv("data/rfm_data.csv")
+    df = pd.read_csv("../data/rfm_data.csv")
     df.drop(columns=['rfm_score'], inplace=True)
 
     return df
