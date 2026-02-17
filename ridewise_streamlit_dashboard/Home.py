@@ -5,21 +5,21 @@ from data_loader import load_data
 inject_sidebar_style()
 
 st.set_page_config(
-    page_title="Customer Churn Dashboard",
+    page_title="RideWise Dashboard",
     layout="wide"
 )
 
 
-st.title("Customer Churn Analysis")
+st.title("RideWise Dashboard")
 
 st.markdown("""
-This application explores customer churn using data analysis and machine learning.
+Explore your rideshare business with interactive charts and filters. See trips, revenue, demand patterns, and where revenue is at risk — then use the **sidebar** to open any page below.
 
 ### Pages
-- **Data Overview** – Understand the dataset and key metrics  
-- **Churn Risk Customers** – Identify high-risk segments  
-- **Prediction Model** – Train and evaluate churn models  
-- **Insights** – Business interpretation and recommendations
+- **Overview** – Total users, trips, revenue, and how customers split by loyalty tier and city
+- **Demand Analysis** – When rides happen: by hour of day and by day (plan drivers and spot peaks)
+- **Revenue Analysis** – When revenue comes in: by hour and by day (compare with demand)
+- **Exposure Analysis** – Revenue at risk if customers go inactive; see segments and who to re-engage
 """)
 
 st.info("Use the sidebar to navigate between pages.")
