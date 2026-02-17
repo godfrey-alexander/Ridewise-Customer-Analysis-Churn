@@ -13,7 +13,7 @@ def load_data():
     return df
 
 def load_data_segments():
-    df = pd.read_csv("data/rfm_data.csv")
+    df = pd.read_csv("../data/rfm_data.csv")
     df.drop(columns=['rfm_score'], inplace=True)
 
     return df
