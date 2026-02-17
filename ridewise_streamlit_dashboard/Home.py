@@ -25,4 +25,3 @@ Explore your rideshare business with interactive charts and filters. See trips, 
 st.info("Use the sidebar to navigate between pages.")
 
 df = load_data()
-rfm = load_data_segments()
