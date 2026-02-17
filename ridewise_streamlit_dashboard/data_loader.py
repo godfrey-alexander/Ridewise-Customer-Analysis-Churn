@@ -1,9 +1,13 @@
 import pandas as pd
 import streamlit as st
 
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / "data"
+
 @st.cache_data(show_spinner="Loading data...")
 def load_data():
-    df = pd.read_csv("data/riders_trips.csv")
+    file_path = DATA_DIR / "riders_trips.csv"
+    df = pd.read_csv(file_path)
     df['pickup_time'] = pd.to_datetime(df['pickup_time'], utc=True)
 
     df['pickup_year'] = df['pickup_time'].dt.year
@@ -12,8 +16,10 @@ def load_data():
 
     return df
 
+@st.cache_data(show_spinner="Loading data...")
 def load_data_segments():
-    df = pd.read_csv("data/rfm_data.csv")
+    file_path = DATA_DIR / "rfm_data.csv"
+    df = pd.read_csv(file_path)
     df.drop(columns=['rfm_score'], inplace=True)
 
     return df
