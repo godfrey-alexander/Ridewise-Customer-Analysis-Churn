@@ -17,7 +17,6 @@ def load_data():
 
     return df
 
-@st.cache_data(show_spinner="Loading data...")
 def load_data_segments():
     file_path = DATA_DIR / "rfm_data.csv"
     df = pd.read_csv(file_path)
