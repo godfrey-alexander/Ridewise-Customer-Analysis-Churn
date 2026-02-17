@@ -1,5 +1,10 @@
 import pandas as pd
 import streamlit as st
+# from pathlib import Path
+
+# BASE_DIR = Path(__file__).resolve().parent
+# DATA_PATH = BASE_DIR/ "data"/ "rfm_data.csv"
+
 
 @st.cache_data(show_spinner="Loading data...")
 def load_data():
@@ -12,9 +17,9 @@ def load_data():
 
     return df
 
+@st.cache_data(show_spinner="Loading data...")
 def load_data_segments():
     df = pd.read_csv("data/rfm_data.csv")
     df.drop(columns=['rfm_score'], inplace=True)
 
     return df
-

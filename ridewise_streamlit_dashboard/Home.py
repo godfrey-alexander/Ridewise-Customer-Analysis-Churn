@@ -1,6 +1,6 @@
 import streamlit as st
 from style import inject_sidebar_style
-from data_loader import load_data
+from data_loader import load_data, load_data_segments
 
 inject_sidebar_style()
 
@@ -25,3 +25,4 @@ Explore your rideshare business with interactive charts and filters. See trips, 
 st.info("Use the sidebar to navigate between pages.")
 
 df = load_data()
+rfm = load_data_segments()
