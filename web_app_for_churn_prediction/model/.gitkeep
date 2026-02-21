@@ -1,0 +1,3 @@
+# Run notebooks/05_Model_Building.ipynb to train and save the model here:
+# - churn_model_pipeline.joblib
+# - churn_model_metadata.joblib
