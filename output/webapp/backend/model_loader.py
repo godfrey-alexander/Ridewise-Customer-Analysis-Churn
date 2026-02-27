@@ -18,9 +18,12 @@ def _patch_tree_monotonic_cst(estimator):
         except (AttributeError, TypeError):
             pass
 
-MODEL_PATH = BASE_DIR / "model" / "rfm_churn_model.joblib"
-METADATA_PATH = BASE_DIR / "model" / "rfm_churn_model_metadata.joblib"
+MODEL_PATH = BASE_DIR / "model" / "rf_churn_model.joblib"
+METADATA_PATH = BASE_DIR / "model" / "rf_churn_model_metadata.joblib"
 PREPROCESSOR_PATH = BASE_DIR / "model" / "preprocessor.joblib"
+
+MODEL_PATH = BASE_DIR / "model" / "lg_churn_model.joblib"
+METADATA_PATH = BASE_DIR / "model" / "lg_churn_model_metadata.joblib"
 
 # Column order for raw features (must match 03_SHAP X before transform)
 RAW_FEATURE_ORDER = [
