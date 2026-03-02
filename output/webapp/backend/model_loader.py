@@ -10,7 +10,6 @@ PREPROCESSOR_PATH = BASE_DIR / "model" / "preprocessor.joblib"
 MODEL_PATH = BASE_DIR / "model" / "lg_churn_model.joblib"
 METADATA_PATH = BASE_DIR / "model" / "lg_churn_model_metadata.joblib"
 
-
 def _patch_tree_monotonic_cst(estimator):
     """Add monotonic_cst if missing (sklearn version compatibility: model saved with older sklearn)."""
     if hasattr(estimator, "estimators_"):
@@ -94,9 +93,9 @@ class ChurnModelService:
         # Reconstruct the DataFrame
         transformed_data = pd.DataFrame(X_t, columns=column_names)
         try:
-            proba = self.model.predict_proba(transformed_data)[:, 1]
-
-            print(f'probability: {proba}')
+            proba_arr = self.model.predict_proba(transformed_data)[:, 1]
+            # Ensure Python float (numpy 0-d or 1-d array can trigger "only 0-dimensional arrays can be converted to Python scalars")
+            proba = float(proba_arr.ravel()[0])
         except ValueError as e:
             if "features" in str(e).lower() or "shape" in str(e).lower():
                 n_out = X_t.shape[1] if hasattr(X_t, "shape") else "?"
@@ -107,7 +106,7 @@ class ChurnModelService:
                     '("num", numeric_transformer, numeric_features), then re-fit and save the preprocessor.'
                 ) from e
             raise
-        return float(proba)
+        return proba
 
     def predict_label(self, features_dict: dict) -> tuple[int, float]:
         proba = self.predict_proba(features_dict)
