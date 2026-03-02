@@ -4,11 +4,9 @@ from pathlib import Path
 
 import pandas as pd
 
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-MODEL_PATH = BASE_DIR / "model" / "rf_churn_model.joblib"
-METADATA_PATH = BASE_DIR / "model" / "rf_churn_model_metadata.joblib"
+# Webapp root (directory containing backend/, frontend/, model/)
+BASE_DIR = Path(__file__).resolve().parent.parent
 PREPROCESSOR_PATH = BASE_DIR / "model" / "preprocessor.joblib"
-
 MODEL_PATH = BASE_DIR / "model" / "lg_churn_model.joblib"
 METADATA_PATH = BASE_DIR / "model" / "lg_churn_model_metadata.joblib"
 
@@ -67,6 +65,7 @@ class ChurnModelService:
             )
         try:
             self.model = joblib.load(MODEL_PATH)
+            print(f"self.model: {self.model}")
             _patch_tree_monotonic_cst(self.model)
             # Patch for sklearn DecisionTree/RandomForest models missing monotonic_cst
             self.metadata = joblib.load(METADATA_PATH)

@@ -31,14 +31,16 @@ inject_background_style()
 def check_api_health() -> tuple[bool, str]:
     """Verify backend is reachable."""
     try:
-        r = requests.get(f"{API_URL}/health", timeout=3)
+        r = requests.get(f"{API_URL}/health", timeout=10)
         r.raise_for_status()
         data = r.json()
         if not data.get("model_loaded", False):
             return False, "Model not loaded on backend. Train the model first."
         return True, "Connected"
     except requests.exceptions.ConnectionError:
-        return False, "Cannot reach API. Start backend: uvicorn backend.main:app"
+        return False, "Cannot reach API. Start backend and set API_URL if needed."
+    except requests.exceptions.Timeout:
+        return False, "API timed out. Is the backend running and reachable?"
     except Exception as e:
         return False, str(e)
 
