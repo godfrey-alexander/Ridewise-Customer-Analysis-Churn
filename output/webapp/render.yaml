@@ -20,4 +20,4 @@ services:
       - key: API_URL
         # IMPORTANT: after first deploy, set this to the public URL of ridewise-churn-api
         value: "https://ridewise-churn-api.onrender.com"
-    dockerCommand: "streamlit run frontend/app.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"
+    dockerCommand: "streamlit run frontend/Home.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"

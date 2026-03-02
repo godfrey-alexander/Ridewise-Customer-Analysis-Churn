@@ -1,0 +1,25 @@
+# Deploy RideWise API + Frontend from output/webapp (Docker).
+# Put this file at the repo root. Connect the repo in Render and use "Apply" for Blueprint.
+services:
+  - type: web
+    name: ridewise-churn-api
+    env: docker
+    plan: free
+    rootDir: output/webapp
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8000"
+
+  - type: web
+    name: ridewise-churn-frontend
+    env: docker
+    plan: free
+    rootDir: output/webapp
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: "8501"
+      - key: API_URL
+        value: "https://ridewise-churn-api.onrender.com"
+    dockerCommand: "streamlit run frontend/Home.py --server.port $PORT --server.address 0.0.0.0 --server.headless true"

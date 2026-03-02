@@ -1,252 +1,496 @@
-# Ridewise-Customer-Analysis-Churn
+# RideWise Customer Analytics & Churn Prediction — Project Documentation
 
-This guide explains **what the project is**, **what each page does**, and **how it helps the business** — in plain language. No technical background needed.
+This document explains the **purpose**, **structure**, **data flows**, and **functionality** of the RideWise project. It is written for onboarding new developers and for presenting the system to stakeholders. No prior technical knowledge of the codebase is assumed.
 
 ---
 
 ## Table of Contents
 
-1. [What Is RideWise?](#1-what-is-ridewise)
-2. [How the Project Is Organized](#2-how-the-project-is-organized)
-3. [Where the Data Comes From](#3-where-the-data-comes-from)
-4. [The Dashboard Pages (In Detail)](#4-the-dashboard-pages-in-detail)
-5. [The Notebooks (What They’re For)](#5-the-notebooks-what-theyre-for)
-6. [How the Pages Work Together](#6-how-the-pages-work-together)
-7. [Quick Reference: What Each Page Answers](#7-quick-reference-what-each-page-answers)
+1. [Project Overview](#1-project-overview)
+2. [Repository Structure](#2-repository-structure)
+3. [Data and Data Flows](#3-data-and-data-flows)
+4. [Notebooks: Analytics & Modeling Pipeline](#4-notebooks-analytics--modeling-pipeline)
+5. [Web Application](#5-web-application)
+6. [How Pages and Notebooks Connect](#6-how-pages-and-notebooks-connect)
+7. [Deployment and Running the Application](#7-deployment-and-running-the-application)
+8. [Quick Reference](#8-quick-reference)
 
 ---
 
-## 1. What Is RideWise?
+## 1. Project Overview
 
-**RideWise** is a ride-hailing analytics project. It has two main parts:
+### What Is RideWise?
 
-- **A web dashboard** — Several pages where you can explore trips, demand, revenue, at-risk customers, and where rides start and end on a map.
-- **Notebooks** — Step-by-step analyses that check the data and explore business questions before the dashboard was built.
+**RideWise** is a ride-hailing analytics and churn-prediction project. It has two main parts:
 
-**In one sentence:** The dashboard helps you see how the business is doing (who’s riding, when, where, and how much money is at risk if customers stop riding).
+- **Jupyter notebooks** — A step-by-step pipeline that explores raw data, engineers features, segments customers (RFMS), defines churn, trains classification models, and produces explainability (SHAP). The notebooks also write the processed datasets and trained models that the app uses.
+- **Web dashboard** — A Streamlit frontend plus FastAPI backend that lets users explore trips, demand, revenue, “revenue at risk” by segment, and **predict churn** for one rider or a batch, with recommendations.
 
----
+**In one sentence:** The project turns ride-hailing data into a clear picture of business health and into actionable churn risk scores so the business can retain customers before they leave.
 
+### Why Each Part Exists
 
-## 2. The Notebooks (What They’re For)
-
-The project includes two Jupyter notebooks. They don’t run inside the dashboard — they’re separate step-by-step analyses.
-
-### Notebook 01: Dataset Exploration & Feature Selection
-
-**What it’s for**  
-To **check the raw data** before any modeling. It loads the original tables (riders, trips, sessions, promotions, drivers), looks at their structure, checks for duplicates and missing values, and figures out how the tables should be linked. The main idea: in the end, we care about **one row per customer (rider)**; trip-level and session-level data are combined and summarized before being attached to each customer.
-
-**Why it matters**  
-It makes sure the data is understood and linked correctly so that later work (e.g. building the trip file and customer segments that feed the dashboard) is built on a solid base.
-
-### Notebook 02: EDA for Business Context
-
-**What it’s for**  
-To **explore the data** and answer business questions, for example:
-
-- What does the customer base look like (e.g. age, city)?
-- When is demand highest?
-- Which users are most profitable?
-- Which cities should marketing focus on?
-- Does surge pricing affect churn?
-- How do trip distance and time relate to price?
-- What drives tipping?
-- How stable is the customer base in terms of churn?
-
-**Why it matters**  
-It decides which metrics and segments matter for the business. The dashboard’s Overview, Demand, and Revenue pages turn some of these into interactive charts; the Exposure page uses customer segments in the same spirit (who’s valuable, who’s at risk).
+| Component | Purpose |
+|----------|--------|
+| **Notebooks** | Define how data is cleaned, joined, and modeled; produce the tables and model artifacts the app consumes. They are the single source of truth for logic and reproducibility. |
+| **Dashboard** | Give non-technical users a single place to explore metrics and run churn predictions without touching code or notebooks. |
 
 ---
 
+## 2. Repository Structure
 
-## 3. Where the Data Comes From
-
-### What the dashboard uses
-
-- **Trip data** — One row per ride. It includes things like: when the ride was, which city, how much was paid, and whether the rider is Bronze/Silver/Gold. This powers the **Overview**, **Demand**, and **Revenue** pages.
-- **Customer-segment data** — One row per customer, with how recently they rode, how often, how much they spent, and a label like “Regular Commuter” or “At Risk.” This powers the **Exposure** page.
-
-The app reads these from CSV files that were already prepared (with dates and segments calculated). The dashboard does **not** change the files — it only filters and sums for the charts and tables you see.
-
-### One important detail
-
-- **Map Hotspots** uses its own data file and its own path. It doesn’t use the same date or city filters as the other pages, so the map is a fixed view of where pickups and dropoffs concentrate.
-
-### Do filters carry over between pages?
-
-**No.** If you choose “Nairobi” on the Overview page, then open Demand Analysis, Demand will still show all cities until you change the filters on that page. Each page has its own filters.
-
----
-
-## 4. The Dashboard Pages (In Detail)
-
----
-
-### Home Page
-
-**What it’s for**  
-Your starting point. It briefly explains the app and tells you to use the **sidebar** to open other pages. It also loads the main trip data in the background so the next pages open quickly.
-
-**What you see**  
-A short title, a list of what the app can do, and a note: “Use the sidebar to navigate between pages.” No charts or filters.
-
-**What you do**  
-Read the intro and click any page name in the sidebar to go there.
-
-**Why it matters**  
-It makes the app feel faster when you open other pages and sets the expectation that navigation happens through the sidebar.
+```
+Project 4 - Final/
+├── data/                          # Raw and processed data
+│   ├── riders.csv, trips.csv, sessions.csv, promotions.csv, drivers.csv  # Raw
+│   └── processed_data/            # Outputs from notebooks (see Data Flows)
+│       ├── riders_trips.csv       # Trip-level data for dashboard Overview/Demand/Revenue
+│       ├── rfm_data.csv           # One row per customer + RFMS segment (Exposure page)
+│       ├── riders_trips_rfms_churned.csv  # Churn modeling + RFMS (model training)
+│       └── ...                    # Other intermediate files (see Section 3)
+├── notebooks/                     # Analysis and modeling pipeline
+│   ├── 00_Dataset_Exploration.ipynb
+│   ├── 01_EDA of Business/
+│   ├── 02_Customer Segmentation/
+│   └── 03_Customer Churn Prediction/
+├── output/
+│   └── webapp/                    # Deployable web application
+│       ├── frontend/              # Streamlit app
+│       │   ├── Home.py             # Entry point and navigation
+│       │   ├── pages/              # One file per page
+│       │   ├── data_loader.py      # Loads CSVs for dashboard
+│       │   ├── style.py            # Global CSS (sidebar, background, metrics)
+│       │   ├── widgets/            # Reusable UI (metric_card, date_card)
+│       │   └── data/               # Expected location for riders_trips.csv, rfm_data.csv
+│       ├── backend/                # FastAPI churn API
+│       │   ├── main.py             # Routes: /health, /predict, /predict/batch
+│       │   ├── model_loader.py     # Loads preprocessor + model; prediction + recommendations
+│       │   └── schema.py           # Pydantic request/response models
+│       ├── model/                  # Expected location for .joblib files (see Section 7)
+│       ├── Dockerfile
+│       ├── requirements.txt
+│       └── render.yaml             # Optional: Render.com deployment config
+└── README.md                      # This file
+```
 
 ---
 
-### Overview Page
+## 3. Data and Data Flows
 
-**What it’s for**  
-Answers: **“What does our rideshare business look like at a glance?”** You see total users, trips, revenue, how customers are split by loyalty tier (e.g. Bronze, Silver, Gold), and how they’re spread across cities.
+### Raw Data (Input)
 
-**What you see**
+- **riders.csv** — One row per rider: demographics, loyalty status, signup date, city.
+- **trips.csv** — One row per trip: fare, tip, surge, pickup/dropoff time and coordinates, payment, weather.
+- **sessions.csv** — App session data (engagement).
+- **promotions.csv** — Campaign metadata.
+- **drivers.csv** — Driver data (context only).
 
-- **Filters (sidebar):** City and Loyalty Tier. You can pick one or more of each; default is “all.”
-- **Top numbers:** Total Users (note: this value is currently fixed at 10,000 and does not change with filters), Total Trips, and Revenue.
-- **Two charts:**  
-  - A **pie chart** — Share of users in each loyalty tier.  
-  - A **bar chart** — How many users are in each city.
+The **unit of analysis** for the final dashboards and churn model is the **customer (rider)**. Trip- and session-level data are aggregated per rider where needed.
 
-**What you do**  
-Change City and/or Loyalty Tier. The totals (except Total Users) and both charts update to only the cities and tiers you selected. You can compare, for example, “just Nairobi” vs “all cities” or “only Gold” vs “everyone.”
+### Processed Data (Produced by Notebooks)
 
-**What data it uses**  
-The same trip data as Demand and Revenue. The page keeps only the rows that match your chosen cities and loyalty tiers, then counts users and trips and sums revenue.
+| File | Produced By | Used By | Description |
+|------|-------------|---------|-------------|
+| **riders_trips.csv** | EDA / feature-engineering notebooks | Frontend: Overview, Demand & Revenue | Trip-level data with rider attributes, pickup time, city, loyalty, fare, tip. One row per trip. |
+| **rfm_data.csv** | Customer Segmentation (RFM notebook) | Frontend: Exposure Analysis | One row per customer: recency, frequency, monetary, segments, and related fields. |
+| **riders_trips_rfms_churned.csv** | Churn notebooks | Churn model training; 03_SHAP | One row per rider with churn label and RFMS segment; used to train and evaluate the classifier. |
 
-**Why it matters**  
-You get a quick sense of scale (how many trips, how much revenue) and mix (loyalty and geography). Good for questions like “Which city has the most users?” or “What share of users are in each loyalty tier?”
+Other files in `data/processed_data/` (e.g. `user_agg_df.csv`, `data_EDA.csv`, `data_modeling.csv`) are intermediate outputs used inside the notebook pipeline.
 
----
+### Data Expected by the Web App
 
-### Demand Analysis Page
+- **Frontend** (`data_loader.py`): Reads from `frontend/data/` relative to the frontend app:
+  - `riders_trips.csv` — for Overview and Demand & Revenue.
+  - `rfm_data.csv` — for Exposure Analysis.
+- **Backend** (`model_loader.py`): Reads from `output/webapp/model/` (relative to backend’s resolution of project root):
+  - `lg_churn_model.joblib` (or equivalent classifier)
+  - `lg_churn_model_metadata.joblib` (threshold, feature list)
+  - `preprocessor.joblib` (same preprocessing as in 03_SHAP Explainability notebook)
 
-**What it’s for**  
-Answers: **“When do rides happen?”** You see how many trips occur **each hour of the day** and **each day** in the period you pick. That helps with driver scheduling and spotting busy times.
-
-**What you see**
-
-- **Filters (sidebar):** Year, Month, and Cities. Defaults are set (e.g. one year, one month, all cities).
-- **Top numbers:** Total Users, Total Trips, Revenue, and Average Fare.
-- **Two charts:**  
-  - **Bar chart** — Trips per hour (0–23). Shows which hours are busiest.  
-  - **Line chart** — Trips per day over the chosen month. Shows how demand changes day by day.
-
-**What you do**  
-Change Year, Month, and/or Cities. All four numbers and both charts update. You can compare, for example, “May in Nairobi” vs “September in all cities.”
-
-**What data it uses**  
-The same trip data. The page keeps only trips in your selected year, month, and cities, then counts trips by hour and by day. No extra business rules — just counts.
-
-**Why it matters**  
-You see peak hours and days so you can plan driver supply and pricing. Useful for spotting patterns (e.g. weekday vs weekend, morning vs evening).
+For local runs, ensure these files exist in the expected paths (e.g. copy or symlink from `data/processed_data/` and from wherever the SHAP notebook saves the model).
 
 ---
 
-### Revenue Analysis Page
+## 4. Notebooks: Analytics & Modeling Pipeline
 
-**What it’s for**  
-Answers: **“How does revenue change over time?”** You see **revenue by hour** and **revenue by day** for the period you choose. Same idea as Demand, but focused on **money** instead of trip counts.
-
-**What you see**
-
-- **Filters (sidebar):** Same as Demand — Year, Month, Cities.
-- **Top numbers:** Same four — Total Users, Total Trips, Revenue, Average Fare.
-- **Two charts:**  
-  - **Bar chart** — Revenue per hour. Which hours make the most money.  
-  - **Line chart** — Revenue per day over the month. How revenue changes day by day.
-
-**What you do**  
-Same as Demand: change the filters and everything updates. You can compare this page with Demand to see if “busy” times are also “high-revenue” times.
-
-**What data it uses**  
-Same trip data and same filters as Demand. The page sums fare (and tip where relevant) by hour and by day instead of counting trips.
-
-**Why it matters**  
-You see which hours and days bring in the most revenue. Used together with Demand, you can tell if high demand also means high revenue (e.g. because of pricing or surge).
+The notebooks form a **sequential pipeline**. Later notebooks depend on outputs of earlier ones.
 
 ---
 
-### Exposure Analysis Page
+### 4.1 Notebook 00: Dataset Exploration
 
-**What it’s for**  
-Answers: **“How much revenue could we lose if we don’t win back customers who might be drifting away?”** You choose a **number of days** (e.g. “customers who haven’t ridden in 7 days”). The page then shows how much revenue those customers represent and breaks it down by **customer segment**. You also get a list of those customers for re-engagement (e.g. emails or offers).
+**Path:** `notebooks/00_Dataset_Exploration.ipynb`
 
-**What you see**
+**Purpose:** Data audit and relationship analysis before any modeling.
 
-- **Filter (sidebar):** A **slider** — “Days since last activity.” You can pick from 7 up to 90 days (in steps of 7). Default is 7.
-- **Top row:**  
-  - **Revenue at Risk** — Total revenue linked to the “at risk” customers (in £).  
-  - **Customers Exposed** — How many customers that is.  
-  - **Date Range** — The range of “last trip” dates for those customers.
-- **Treemap** — Each block is a customer segment (e.g. “Regular Commuters”, “At Risk Users”). The size of the block shows how much of the “revenue at risk” comes from that segment. Hover to see the amount.
-- **Table** — The list of at-risk customers so you can see who they are (e.g. for targeting campaigns).
+**What it does:**
 
-**What you do**  
-Move the slider to different values (e.g. 7, 14, 30, 90 days). The numbers, treemap, and table all update. A higher number of days usually means more customers and more “revenue at risk.”
+- Loads and inspects the five raw datasets (riders, trips, sessions, promotions, drivers).
+- Checks structure, missing values, and duplicates.
+- Validates primary and foreign key relationships and defines how tables should be joined.
+- Ensures the “one row per rider” concept and join logic are clear for downstream work.
 
-**What data it uses**  
-A separate file with one row per customer: how many days since their last trip (recency), how often they ride (frequency), how much they’ve spent (monetary), and a segment label. The page uses your chosen “days since last activity” to decide who counts as “at risk,” then sums their past revenue and groups by segment.
+**Why it exists:** Prevents incorrect joins, data leakage, and silent data-quality bugs in later notebooks and in the app.
 
-**One note**  
-The page caption describes revenue lost if customers *inactive* for that many days are not re-engaged. The way “at risk” is calculated in the app (which customers are included when you move the slider) should match that idea. If you ever feel the numbers don’t match the caption (e.g. you expect “inactive 30+ days” but see different customers), it’s worth checking with whoever maintains the app so the logic and the wording stay aligned.
-
-**Why it matters**  
-You can decide how much to invest in re-engagement by seeing how much revenue is tied to potentially inactive customers. The treemap shows which segments matter most; the table tells you who to contact.
+**Output:** No direct file output; it establishes the **data dictionary and join rules** used in subsequent notebooks.
 
 ---
 
-### Map Hotspots Page
+### 4.2 Notebooks 01: EDA of Business
 
-**What it’s for**  
-Answers: **“Where do pickups and dropoffs concentrate?”** Two maps show **pickup** and **dropoff** hotspots (denser areas appear as darker or larger hexagons). Useful for deciding where to position drivers or run local campaigns.
+**Path:** `notebooks/01_EDA of Business/`
 
-**What you see**
+**Purpose:** Turn raw/joined data into business-ready features and answer high-level business questions.
 
-- A title: “Pickup & Dropoff Hotspots Map.”
-- **First map** — Pickup hotspots. Darker/bigger hexagons = more pickups in that area.
-- **Second map** — Dropoff hotspots. Same idea for dropoffs.
-- No filters in the sidebar on this page.
+**01_Feature_Engineering_for_EDA.ipynb**
 
-**What you do**  
-Pan and zoom on each map to explore. The maps don’t change when you change filters on other pages; this page uses its own data and a fixed snapshot.
+- Builds a joined/engineered dataset (e.g. from `riders_trips.csv` or equivalent).
+- Adds time-based features (year, month, day, hour, weekend, peak hour, etc.) and any other derived columns needed for EDA.
 
-**What data it uses**  
-A separate data file that contains pickup and dropoff locations. The app doesn’t use the same date or city filters as the other pages here, so what you see is one fixed view. (Technically, the file path is set inside the app and may point to a specific folder on one machine; if the map doesn’t load elsewhere, the path may need to be updated.)
+**02_EDA_for_Business_Context.ipynb**
 
-**Why it matters**  
-You see where rides start and end so you can plan driver placement and local promotions.
+- Explores the data to answer questions such as:
+  - Demographics of the customer base
+  - When demand is highest
+  - Which users are most profitable
+  - Which cities to focus on for marketing
+  - Effect of surge pricing on churn
+  - Relationship of trip distance/duration to price
+  - What drives tipping
+  - Stability of the customer base (churn)
 
----
+**Why they exist:** They define which metrics and segments matter for the business and inform what the dashboard shows (e.g. Overview, Demand, Revenue, Exposure).
 
-
-## 5. How the Pages Work Together
-
-- **Home** — Entry point; loads data so other pages are fast; directs you to the sidebar.
-- **Overview** — Big picture: users, trips, revenue, loyalty, cities. Same underlying trip data as Demand and Revenue.
-- **Demand Analysis** and **Revenue Analysis** — Same filters (year, month, cities). One shows **when rides happen** (counts); the other shows **when money comes in** (revenue). Use them together to see if busy times are also profitable times.
-- **Exposure Analysis** — Uses customer-segment data. Shows **how much revenue is at risk** if you don’t re-engage certain customers and **who those customers are** (by segment and in a table).
-- **Map Hotspots** — Standalone. Shows **where** pickups and dropoffs concentrate; uses its own data and no shared filters.
-
-**Remember:** Filters are **not** shared. Each page only uses its own sidebar choices.
+**Outputs:** Contribute to or produce datasets such as `data_EDA.csv` and the trip-level data that eventually feeds the dashboard (e.g. `riders_trips.csv`).
 
 ---
 
-## 6. Quick Reference: What Each Page Answers
+### 4.3 Notebooks 02: Customer Segmentation
 
-| Page | Main question | What you can do |
-|------|----------------|-----------------|
-| **Home** | Where do I go? | Use the sidebar to open any page |
-| **Overview** | What does the business look like at a glance? | Filter by city and loyalty → see totals and pie/bar charts |
-| **Demand Analysis** | When do rides happen? | Filter by year, month, cities → see trips by hour and by day |
-| **Revenue Analysis** | When does revenue come in? | Same filters → see revenue by hour and by day |
-| **Exposure Analysis** | How much revenue is at risk if we don’t re-engage customers? | Move the “days since last activity” slider → see revenue at risk, treemap by segment, and customer list |
-| **Map Hotspots** | Where do pickups and dropoffs concentrate? | Pan and zoom on the two maps |
+**Path:** `notebooks/02_Customer Segmentation/`
+
+**Purpose:** Segment customers using RFM and Surge (RFMS) so the business can target offers and the churn model can use segment as a feature.
+
+**01_Feature Engineering & EDA.ipynb**
+
+- Works with user-level or trip-level data; creates features needed for clustering and RFMS (e.g. recency, frequency, monetary, surge-related).
+
+**02_Data Processing for Clustering Modelling.ipynb**
+
+- Produces a clean, one-row-per-customer table (e.g. `user_agg_df.csv`) with recency, total_trips, spend, avg_surge, tips, ratings, loyalty, city, avg_distance, avg_duration, active_days.
+
+**03_Clustering Model Development.ipynb**
+
+- Runs clustering (e.g. K-means or similar) on RFM(S) dimensions to get segment labels.
+
+**04_RFM_Analysis.ipynb**
+
+- Defines the **RFMS framework**:
+  - **R**ecency — days since last trip
+  - **F**requency — e.g. total trips
+  - **M**onetary — total spend
+  - **S**urge — average surge multiplier (price tolerance)
+- Maps clusters to named segments (e.g. “At Risk”, “Occasional Riders”, “Core Loyal Riders”, “High-Value Surge-Tolerant”) and produces segment labels per customer.
+
+**Why they exist:** Segments drive the Exposure Analysis page (revenue at risk by segment) and the Churn Predictor (RFMS segment is an input and drives recommendations).
+
+**Outputs:** User-level tables with RFMS segments; one of these (or a derivative) is saved as `rfm_data.csv` for the dashboard and used in churn modeling.
 
 ---
 
-For step-by-step **how to use** the app (without technical detail), see **Read Me.md** in the dashboard folder.
+### 4.4 Notebooks 03: Customer Churn Prediction
+
+**Path:** `notebooks/03_Customer Churn Prediction/`
+
+**Purpose:** Define churn, build a classification model, and export a preprocessor + model for the API.
+
+**01_Churn_Definition_&_Churn_EDA.ipynb**
+
+- Defines **churn** (e.g. no activity for a fixed number of days or similar rule).
+- Creates a binary churn label and explores churn rates and patterns.
+
+**02_Data Processing & Classification Model Development.ipynb**
+
+- Loads the dataset with churn label and RFMS (e.g. `riders_trips_rfms_churned.csv`).
+- Splits train/test, handles class imbalance (e.g. SMOTE), builds preprocessing (scaling, encoding).
+- Trains and compares classifiers (e.g. Logistic Regression, Random Forest, XGBoost).
+- Picks a business threshold and saves the chosen model and metadata.
+
+**03_SHAP Explainability.ipynb**
+
+- Uses the same churn dataset and **same feature set** as the model.
+- Builds a **preprocessing pipeline** (ColumnTransformer) that matches the model’s expectations (numeric + categorical encoding).
+- Fits the preprocessor on the training data and saves it as `preprocessor.joblib`.
+- Optionally runs SHAP for interpretability.
+- Ensures the **column order and transformations** used here are exactly what the backend’s `model_loader.py` expects (see `RAW_FEATURE_ORDER` and preprocessor usage).
+
+**Why they exist:** They produce the churn definition, the trained model, the threshold, and the preprocessor that the FastAPI backend loads to serve single and batch predictions.
+
+**Outputs:** Model and metadata (e.g. `lg_churn_model.joblib`, `lg_churn_model_metadata.joblib`) and `preprocessor.joblib`, to be placed in `output/webapp/model/`.
+
+---
+
+## 5. Web Application
+
+The application consists of a **Streamlit frontend** (multi-page) and a **FastAPI backend** (churn prediction only). The frontend uses a top navigation bar; filters are per-page and do not persist when switching pages.
+
+---
+
+### 5.1 Application Architecture
+
+- **Frontend:** `output/webapp/frontend/` — Streamlit. Renders all dashboard pages and calls the backend for churn predictions.
+- **Backend:** `output/webapp/backend/` — FastAPI. Exposes `/health`, `/info`, `/predict`, and `/predict/batch`; loads the preprocessor and model at startup.
+- **Data:** The frontend reads only from local CSV files (via `data_loader.py`). No database.
+- **Churn:** Single and batch predictions are sent as JSON to the backend; the backend runs the preprocessor and model and returns probability, label, risk level, and recommendation.
+
+---
+
+### 5.2 Entry Point and Navigation
+
+**File:** `frontend/Home.py`
+
+**Purpose:** Application entry point and global navigation.
+
+**What it does:**
+
+- Sets page title and layout.
+- Injects global sidebar and background styles (`style.py`).
+- Defines the **navigation list**: Home, Overview, Demand & Revenue, Exposure Analysis, Churn Predictor.
+- Uses `st.navigation(pages, position="top")` so the top bar is the main way to switch pages.
+- Does **not** render page content itself; each page module is loaded when the user selects it.
+
+**Why it exists:** Single place to add or reorder pages and to apply app-wide styling.
+
+---
+
+### 5.3 Page: Home (Dashboard)
+
+**File:** `frontend/pages/0_Dashboard.py`
+
+**Purpose:** Landing page and quick description of the app.
+
+**What it does:**
+
+- Shows a short title and project description (e.g. “Rideshare Executive Dashboard” and developer credit).
+- Lists what each other page does (Overview, Demand & Revenue, Exposure, Churn Predictor).
+- Tells users to use the **top navigation bar** to move between pages.
+- Calls `load_data()` so trip data is cached and subsequent pages (Overview, Demand & Revenue) load faster.
+
+**What you see:** Text and bullet list; no charts or filters.
+
+**Why it exists:** Gives new users a clear starting point and reduces perceived load time when opening data-heavy pages.
+
+---
+
+### 5.4 Page: Overview
+
+**File:** `frontend/pages/1_Overview.py`
+
+**Purpose:** Answer: *“What does our rideshare business look like at a glance?”*
+
+**What it does:**
+
+- Loads trip data via `load_data()` (from `frontend/data/riders_trips.csv`).
+- **Sidebar filters:** City and Loyalty Tier (each can be “All” or a single value). The dataframe is filtered to the selected cities and loyalty tiers.
+- **Metrics row:** Displays Total Users (currently fixed at 10,000 and not filtered), Total Trips, and Revenue over the filtered data.
+- **Charts:**
+  - **Pie chart:** Share of users in each loyalty tier (Bronze, Silver, Gold, etc.).
+  - **Bar chart:** Number of users per city (horizontal bars).
+- Uses the shared **metric_card** widget for the three KPIs.
+
+**Data flow:** `data_loader.load_data()` → filter by city and loyalty_status → aggregate for metrics and charts.
+
+**Why it exists:** Quick snapshot of scale (trips, revenue) and mix (loyalty and geography) for reporting and comparison.
+
+---
+
+### 5.5 Page: Demand & Revenue
+
+**File:** `frontend/pages/2_Demand_Revenue.py`
+
+**Purpose:** Answer: *“When do rides happen?”* and *“When does revenue come in?”* on one page with two tabs.
+
+**What it does:**
+
+- Loads the same trip data via `load_data()`.
+- **Sidebar filters (shared across both tabs):** Year, Month, City. Each can be “All” or a single option. Data is filtered by `pickup_year`, `pickup_month_num`, and `city`.
+- **Shared KPIs (above the tabs):** Total Users, Total Trips, Revenue, Average Fare — all computed on the filtered dataframe.
+- **Tab “Demand Analysis”:**
+  - Bar chart: trips per hour of the day (`pickup_hour`).
+  - Line chart: trips per day over the selected period (daily count by `pickup_time` date).
+- **Tab “Revenue Analysis”:**
+  - Bar chart: revenue per hour (`total_fare` by `pickup_hour`).
+  - Line chart: revenue per day over the selected period.
+
+**Data flow:** `load_data()` → filter by year, month, city → group by hour or by date for charts; sum or count as needed.
+
+**Why it exists:** Lets operations compare demand (trip counts) and revenue (fare) over time to plan driver supply and pricing.
+
+---
+
+### 5.6 Page: Exposure Analysis
+
+**File:** `frontend/pages/4_Exposure_Analysis.py`
+
+**Purpose:** Answer: *“How much revenue could we lose if we don’t re-engage customers who meet an inactivity threshold?”* and *“Who are they, by segment?”*
+
+**What it does:**
+
+- Loads customer-level segment data via `load_data_segments()` from `frontend/data/rfm_data.csv` (drops the `rfm_score` column).
+- **Sidebar:** Single control — “Days since last activity” (slider from 7 to 90, step 7). This value is the **inactivity threshold**.
+- **At-risk definition in code:** `at_risk_customers = rfm[rfm['recency'] <= inactivity_threshold]`. So the page shows customers whose **recency** (days since last trip) is **less than or equal to** the chosen number. In RFM terms, lower recency means more recently active; thus this selects customers who were active **within** the last N days. (If the product intent is “inactive for N days,” the condition would typically be `recency >= inactivity_threshold`; the current behavior is as implemented.)
+- **Metrics:** Revenue at Risk (sum of `monetary` over at-risk customers), Customers Exposed (count), and a date range (min/max of `last_trip_time` for those customers) via **date_card**.
+- **Treemap:** Proportion of “Revenue Exposure” by customer **segment** (`segments`). Size and color represent revenue per segment.
+- **Table:** List of at-risk customers (dataframe with segment and monetary; `last_trip_time` dropped for display).
+
+**Data flow:** `load_data_segments()` → filter by recency ≤ threshold → aggregate by segment and sum monetary; pass to treemap and table.
+
+**Why it exists:** Supports re-engagement and campaign sizing by quantifying revenue tied to a chosen recency cut and by segment.
+
+---
+
+### 5.7 Page: Churn Predictor
+
+**File:** `frontend/pages/5_Churn_Predictor.py`
+
+**Purpose:** Predict churn risk for one rider or a batch and show a recommended action.
+
+**What it does:**
+
+- **Sidebar:** Calls the backend `/health` endpoint. Shows “API ready” or an error (e.g. “Cannot reach API” or “Model not loaded”).
+- **Tabs:**
+  - **Single Predict:** Form with 11 inputs: recency, total_trips, avg_spend, total_tip, avg_tip, avg_rating_given, loyalty_status, city, avg_distance, avg_duration, RFMS_segment. On “Predict Churn Risk,” sends a POST to `API_URL/predict` with the payload. Result is shown in a **dialog**: churn probability, risk level (Low/Medium/High), churn/retained label, progress bar, threshold, and **recommendation** text.
+  - **Batch Predict:** File upload (CSV) with the same 11 columns. On “Predict batch,” sends POST to `API_URL/predict/batch`. Displays a table of predictions and a download button for the results CSV.
+  - **About:** Short description of inputs, outputs, and that the backend uses a preprocessor + trained model.
+- **API URL:** Taken from environment variable `API_URL` (default `http://localhost:8000`).
+
+**Data flow:** User input → JSON to FastAPI → `model_loader` runs preprocessor and model → response with probability, label, risk level, recommendation → frontend displays in dialog or table.
+
+**Why it exists:** Puts the trained churn model in the hands of business users for single riders or lists (e.g. from CRM) and ties risk to actionable recommendations.
+
+---
+
+### 5.8 Shared Components
+
+**data_loader.py**
+
+- **load_data():** Reads `frontend/data/riders_trips.csv`, parses `pickup_time`, adds `pickup_year`, `pickup_month_num`, `pickup_month_name`. Cached with `st.cache_data`.
+- **load_data_segments():** Reads `frontend/data/rfm_data.csv` and drops `rfm_score`. Used only by Exposure Analysis.
+
+**style.py**
+
+- **inject_background_style():** Sets app background (gradient or image from `frontend/assets/background.png`).
+- **inject_sidebar_style():** Injects CSS for sidebar, navigation links, metric cards, viewport, and Churn Predictor–specific styles (risk colors, buttons).
+
+**widgets/metric_card.py**
+
+- **metric_card(title, value, delta=None, prefix="", suffix=""):** Renders a styled KPI card (title, formatted value, optional delta). Used on Overview, Demand & Revenue, and Exposure.
+
+**widgets/date_card.py**
+
+- **date_card(value_min, value_max):** Renders a card showing a date range (e.g. “Date Range: max – min”). Used on Exposure Analysis.
+
+---
+
+### 5.9 Backend API
+
+**main.py**
+
+- **FastAPI app** with CORS enabled for frontend access.
+- **GET /health:** Returns `{"status": "ok", "model_loaded": bool}`. Used by the Churn Predictor page to show connection status.
+- **GET /info:** Returns version, threshold, feature count; 503 if model not loaded.
+- **POST /predict:** Accepts a single `ChurnFeatures` body. Calls `model_service.predict_label()` and `model_service.risk_level()`, then `model_service.recommendation(RFMS_segment, risk)`. Returns `ChurnPredictionResponse` (churn_probability, churn_label, threshold, risk_level, recommendation).
+- **POST /predict/batch:** Accepts a list of `ChurnFeatures`. Runs predict for each and returns `{ "predictions": [...], "count": N }`.
+
+**schema.py**
+
+- **ChurnFeatures:** Pydantic model for the 11 raw features (recency, total_trips, avg_spend, total_tip, avg_tip, avg_rating_given, loyalty_status, city, avg_distance, avg_duration, RFMS_segment) with types and constraints.
+- **ChurnPredictionResponse:** churn_probability, churn_label, threshold, risk_level, recommendation.
+
+**model_loader.py**
+
+- **ChurnModelService:** On init, loads `lg_churn_model.joblib`, `lg_churn_model_metadata.joblib`, and `preprocessor.joblib` from `output/webapp/model/`. Applies a compatibility patch for tree-based models if needed. Reads business threshold and feature columns from metadata.
+- **predict_proba(features_dict):** Builds a one-row DataFrame in `RAW_FEATURE_ORDER`, runs preprocessor, then model `predict_proba`; returns probability of class 1 (churn).
+- **predict_label(features_dict):** Returns (label, proba) where label = 1 if proba ≥ threshold else 0.
+- **risk_level(proba, threshold, thr_mid):** Maps probability to “Low Risk”, “Medium Risk”, or “High Risk” using threshold and a mid threshold (e.g. 0.65).
+- **recommendation(rfms_segment, risk_level):** Returns a fixed recommendation string based on segment and risk (e.g. “Highest priority: churn-prevention package…” for High Risk + At Risk). This is business logic, not ML.
+- If model files are missing or loading fails, `model_service` is set to `None` and the API returns 503 on `/predict` and `/info`.
+
+---
+
+## 6. How Pages and Notebooks Connect
+
+- **Notebooks** produce:
+  - Trip-level data → copied/symlinked as `frontend/data/riders_trips.csv` → **Overview**, **Demand & Revenue**.
+  - Customer-level RFMS data → `frontend/data/rfm_data.csv` → **Exposure Analysis**.
+  - Churn dataset + preprocessing + model → saved to `output/webapp/model/` → **Backend** → **Churn Predictor** page.
+- **Overview**, **Demand & Revenue** share the same data source and the same `load_data()` cache; they do not share filters across pages.
+- **Exposure Analysis** is independent of trip-level filters; it only uses the segment file and the “days since last activity” slider.
+- **Churn Predictor** does not use the CSV data; it only talks to the FastAPI backend. The backend expects the same 11 features and the same preprocessor as in **03_SHAP Explainability**.
+
+---
+
+## 7. Deployment and Running the Application
+
+### Prerequisites
+
+- Python 3.11+ (or as in `Dockerfile`).
+- Dependencies: see `output/webapp/requirements.txt` (FastAPI, uvicorn, Streamlit, pandas, scikit-learn, joblib, pydantic, requests, etc.).
+
+### Data and Model Setup
+
+1. Run the notebook pipeline so that:
+   - `riders_trips.csv` and `rfm_data.csv` exist (or equivalent); place copies in `output/webapp/frontend/data/`.
+   - `preprocessor.joblib`, `lg_churn_model.joblib`, and `lg_churn_model_metadata.joblib` are saved from the churn/SHAP notebooks into `output/webapp/model/`.
+2. Ensure the backend can resolve the project root so that `model/` points to `output/webapp/model/` (see `model_loader.py`).
+
+### Run Locally
+
+- **Backend:** From `output/webapp/`, run:  
+  `uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000`
+- **Frontend:** From `output/webapp/`, run:  
+  `streamlit run frontend/Home.py --server.port 8501`  
+  (or run from `frontend/` with `streamlit run Home.py` and ensure `API_URL` is set if the API is elsewhere.)
+- Set `API_URL` (e.g. `http://localhost:8000`) when the frontend runs on a different host/port than the backend.
+
+### Docker
+
+- The provided `Dockerfile` builds and runs the **API only** by default:  
+  `CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]`.  
+  For a frontend container, override the command to run Streamlit and ensure `API_URL` points to the API service (e.g. in `render.yaml`).
+
+### Render.com
+
+- `render.yaml` defines two services (API and frontend). Set the frontend’s `API_URL` to the deployed API URL after the first deploy.
+
+---
+
+## 8. Quick Reference
+
+### What Each Page Answers
+
+| Page | Main question | Main actions |
+|------|----------------|--------------|
+| **Home** | Where do I start? | Read intro; use top nav to open other pages; data preloaded for speed. |
+| **Overview** | What does the business look like at a glance? | Filter by city and loyalty tier; view totals and pie/bar charts. |
+| **Demand & Revenue** | When do rides and revenue happen? | Filter by year, month, city; switch tabs for demand vs revenue charts. |
+| **Exposure Analysis** | How much revenue is at risk and who are those customers? | Set “days since last activity”; view revenue at risk, treemap by segment, customer table. |
+| **Churn Predictor** | Is this rider (or list) likely to churn? What should we do? | Single: form → predict → dialog with probability, risk, recommendation. Batch: upload CSV → download predictions. |
+
+### Notebook Pipeline Order
+
+1. **00_Dataset_Exploration** — Audit and relationships.
+2. **01_EDA of Business** — Feature engineering and business EDA.
+3. **02_Customer Segmentation** — RFMS and segments → `rfm_data.csv` and inputs for churn.
+4. **03_Customer Churn Prediction** — Churn definition, model training, SHAP and preprocessor → model and preprocessor for the API.
+
+### Key Files for Onboarding
+
+- **Navigation and entry:** `frontend/Home.py`
+- **Data loading:** `frontend/data_loader.py`
+- **Churn API:** `backend/main.py`, `backend/model_loader.py`, `backend/schema.py`
+- **Preprocessor/feature contract:** Notebook `03_SHAP Explainability.ipynb` and `model_loader.py` (`RAW_FEATURE_ORDER`, preprocessor usage).
+
+---
+
+*This documentation is intended to be production-ready for developer onboarding and stakeholder presentation. For step-by-step user instructions without technical detail, see `output/webapp/frontend/Read Me.md`.*
