@@ -1,6 +1,6 @@
 # RideWise Churn Prediction Web App
 
-Professional ML-powered customer churn prediction for RideWise ride-sharing, built from the `05_Model_Building` notebook.
+Professional ML-powered customer churn prediction for RideWise ride-sharing., built from the `05_Model_Building` notebook.
 
 ## Architecture
 

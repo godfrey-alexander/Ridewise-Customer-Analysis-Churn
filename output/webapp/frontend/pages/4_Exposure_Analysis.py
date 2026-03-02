@@ -2,12 +2,16 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from style import inject_sidebar_style
+try:
+    from style import inject_background_style
+except ImportError:
+    inject_background_style = lambda: None
 from data_loader import load_data_segments
 from widgets.metric_card import metric_card
 from widgets.date_card import date_card
 
-
 inject_sidebar_style()
+inject_background_style()
 
 st.title("🚗 Rideshare Interactive Dashboard")
 st.caption(" Maximum potential revenue lost if customers inactive for the selected number of days are not re-engaged.")

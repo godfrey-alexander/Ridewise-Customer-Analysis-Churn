@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 from style import inject_sidebar_style
+from style import inject_background_style
 from data_loader import load_data
 from widgets.metric_card import metric_card
 
@@ -12,11 +13,24 @@ df = load_data()
 st.set_page_config(page_title="Rideshare Executive Dashboard", layout="wide")
 
 inject_sidebar_style()
+inject_background_style()
 
 # Sidebar Filters (Global)
-st.sidebar.title("Global Filters")
-cities = st.sidebar.multiselect("City", df.city.unique(), df.city.unique())
-loyalty = st.sidebar.multiselect("Loyalty Tier", df.loyalty_status.unique(), df.loyalty_status.unique())
+# Sidebar
+#     st.image("https://img.icons8.com/fluency/96/car.png", width=64)
+#     st.markdown("## RideWise Churn")
+#     st.markdown("Predict rider churn risk using RFMS and engagement features.")
+#     st.divider()
+with st.sidebar:
+    st.markdown("### Global Filters")
+
+city_options = ["All"] + list(df.city.unique())
+city_choice = st.sidebar.selectbox("City", options=city_options, index=0)
+cities = list(df.city.unique()) if city_choice == "All" else [city_choice]
+
+loyalty_options = ["All"] + list(df.loyalty_status.unique())
+loyalty_choice = st.sidebar.selectbox("Loyalty Tier", options=loyalty_options, index=0)
+loyalty = list(df.loyalty_status.unique()) if loyalty_choice == "All" else [loyalty_choice]
 
 df = df[df.city.isin(cities) & df.loyalty_status.isin(loyalty)]
 

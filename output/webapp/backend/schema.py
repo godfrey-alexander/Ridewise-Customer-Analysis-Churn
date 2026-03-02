@@ -27,3 +27,4 @@ class ChurnPredictionResponse(BaseModel):
     churn_label: int
     threshold: float
     risk_level: str  # Low, Medium, High, Critical
+    recommendation: str = ""  # Suggested action based on segment and risk

@@ -1,200 +1,143 @@
-# RideWise Dashboard — User Guide
+# RideWise Dashboard
 
-This guide explains what the dashboard is for and what you can do on each page. No technical background needed.
+A simple, interactive dashboard for a ride-sharing business. Explore trips and revenue, see where money is at risk, and predict which riders might leave—so you can act before they do.
 
----
-
-## 1. What Is This App?
-
-The **RideWise Dashboard** is a multi-page app that helps you understand your rideshare business using your trip data. You can:
-
-- **See the big picture** — total users, trips, revenue, and where your customers are (Overview).
-- **See when rides happen** — by hour and by day (Demand Analysis).
-- **See when money comes in** — revenue by hour and by day (Revenue Analysis).
-- **See revenue at risk** — if customers stop riding, how much could you lose, and who those customers are (Exposure Analysis).
-- **See where rides start and end** — pickup and dropoff hotspots on a map (Map Hotspots).
-
-You don’t need to know how the data is loaded or stored; you just use the sidebar to open a page and the filters on that page to explore.
+**Developed by Godfrey Alexander Abban**
 
 ---
 
-## 2. How to Get Around
+## What is this?
 
-- **Sidebar (left):** Use it to switch between pages. Click **Home**, **Overview**, **Demand Analysis**, **Revenue Analysis**, **Exposure Analysis**, or **Map Hotspots**.
-- **Filters:** Many pages have filters in the sidebar (e.g. city, year, month). When you change a filter, the numbers and charts on that page update automatically.
-- **No shared filters:** What you choose on one page (e.g. Overview) does not change another page (e.g. Demand Analysis). Each page has its own filters.
+RideWise Dashboard is a **web app** that turns ride-sharing data into clear charts and numbers. You can:
 
----
+- **See the big picture** — How many users and trips you have, how much revenue you make, and how customers are spread across cities and loyalty tiers.
+- **See when rides and revenue happen** — By hour and by day, so you can plan drivers and spot busy periods.
+- **See revenue at risk** — How much money is tied to customers who haven’t ridden in a while, and which groups they belong to.
+- **Predict churn** — For a single rider or a whole list, get a “how likely are they to leave?” score plus a suggested action (e.g. send an offer, give a perk).
 
-## 3. How the Pages Work Together
-
-- **Home** is the starting point and explains navigation.
-- **Overview** gives you the big picture (users, trips, revenue, loyalty, cities). Use it when you want a quick summary or to compare cities/loyalty tiers.
-- **Demand Analysis** and **Revenue Analysis** both use the same type of filters (year, month, cities) but show different things: Demand = *when* rides happen (counts), Revenue = *when* money comes in. Use them together to see if busy times are also high-revenue times.
-- **Exposure Analysis** focuses on “at risk” customers and how much revenue they represent. Use it to prioritize re-engagement and see which segments to focus on.
-- **Map Hotspots** is separate: it shows *where* rides happen on a map and doesn’t use the same filters as the other pages. Use it when you care about geography and hotspots.
-
-Filters on one page do **not** affect another. For example, if you select “Nairobi” on Overview, then open Demand Analysis, Demand will still show all cities until you change its own filters. Each page is independent.
-
-## 4. Home Page
-
-### What it’s for
-
-The Home page is your starting point. It briefly explains what the app does and tells you to use the **sidebar** to open other pages. It also loads the main data in the background so other pages open quickly when you click them.
-
-### What you’ll see
-
-- A short title and description of the app.
-- A note: **“Use the sidebar to navigate between pages.”**
-- No charts, tables, or filters — just text and the sidebar.
-
-### What you can do
-
-- Read the intro.
-- Click any page name in the sidebar to go to that page.
+No coding or data skills are required to use the app. You click through the pages and use filters and buttons to explore.
 
 ---
 
-## 5. Overview Page
+## How to open the app
 
-### What it’s for
-
-Overview answers: **“What does our rideshare business look like at a glance?”** It shows how many users and trips you have, how much revenue you make, how customers are split by loyalty tier, and how they’re spread across cities. Good for a quick summary or for comparing different cities or loyalty groups.
-
-### What you’ll see
-
-- **At the top:** Three summary numbers in cards:
-  - **Total Users**
-  - **Total Trips**
-  - **Revenue**
-- **In the sidebar:** Two filters:
-  - **City** — choose one or more cities (default: all).
-  - **Loyalty Tier** — choose one or more tiers (default: all).
-- **Charts:**
-  - A **pie chart** showing the share of users in each loyalty tier (e.g. Bronze, Silver, Gold).
-  - A **horizontal bar chart** showing how many users are in each city.
-
-### What you can do
-
-- Change **City** and/or **Loyalty Tier** in the sidebar. The totals (except Total Users) and both charts update to show only the selected cities and tiers.
-- Use this to compare, for example, “just Nairobi” vs “all cities” or “only Gold members” vs “everyone.”
-
-### Why it’s useful
-
-- Get a quick sense of scale (trips, revenue) and mix (loyalty, geography).
-- Answer questions like: “Which city has the most users?” or “What share of our users are in each loyalty tier?”
+1. Make sure you have **Python** installed on your computer.
+2. Open a terminal (or command prompt) in the project folder.
+3. Install what the app needs (the project’s `requirements.txt` lists everything).
+4. Start the **backend** (the part that runs the churn prediction):  
+   From the `backend` folder, run:  
+   `uvicorn main:app --reload`  
+   (or the command your project uses to start the backend server.)
+5. Start the **frontend** (the part you see in the browser):  
+   From the `frontend` folder, run:  
+   `streamlit run Home.py`
+6. Your browser will open the dashboard. Use the **navigation bar at the top** to switch between pages.
 
 ---
 
-## 6. Demand Analysis Page
+## What’s in the app?
 
-### What it’s for
+At the **top of the screen** you’ll see a bar with:
 
-Demand Analysis answers: **“When do rides happen?”** It shows how many trips you get **each hour of the day** and **each day** in the period you pick. That helps you plan driver supply, peak hours, and busy days.
+- **Home** — Short intro and a list of what each page does. Use the bar to go to any other page.
+- **Overview** — Summary numbers (users, trips, revenue) and charts by city and loyalty tier.
+- **Demand & Revenue** — One page with two tabs: when rides happen (demand) and when money comes in (revenue).
+- **Exposure Analysis** — How much revenue could be lost if “inactive” customers don’t come back, and who they are.
+- **Churn Predictor** — Enter one rider’s details (or upload a file of many) and get a churn risk score and a recommendation.
 
-### What you’ll see
-
-- **At the top:** Four summary cards:
-  - **Total Users**
-  - **Total Trips**
-  - **Revenue**
-  - **Avg Fare**
-- **In the sidebar:** Three filters:
-  - **Year** (default: first year in the data).
-  - **Month** (default: often May, depending on data).
-  - **Cities** (default: all).
-- **Charts:**
-  - A **bar chart** of trips per hour (0–23). Shows which hours are busiest.
-  - A **line chart** of trips per day over the chosen month. Shows how demand changes day by day.
-
-### What you can do
-
-- Change **Year**, **Month**, and/or **Cities**. All four numbers and both charts update to match your selection.
-- Use this to compare different months or cities (e.g. “May in Nairobi” vs “September in all cities”).
-
-### Why it’s useful
-
-- Find peak hours and days so you can schedule more drivers or adjust pricing.
-- Spot patterns (e.g. weekday vs weekend, morning vs evening).
+The **sidebar** (left side) shows the RideWise logo and, on some pages, **filters** (e.g. city, year, month). Changing a filter updates the numbers and charts on that page. Many filters start on **“All”** so you see everything until you narrow it down.
 
 ---
 
-## 7. Revenue Analysis Page
+## Page-by-page (in plain language)
 
-### What it’s for
+### Home
 
-Revenue Analysis answers: **“How does revenue change over time?”** It shows **revenue by hour of day** and **revenue by day** for the period you choose. It’s the money view of your business; Demand Analysis is the trip-count view. Same filters (year, month, cities) so you can compare the two pages easily.
-
-### What you’ll see
-
-- **At the top:** Same four cards as Demand Analysis — Total Users, Total Trips, Revenue, Avg Fare.
-- **In the sidebar:** Same three filters — Year, Month, Cities (same defaults as Demand).
-- **Charts:**
-  - A **bar chart** of revenue per hour. Shows which hours make the most money.
-  - A **line chart** of revenue per day over the chosen month. Shows how revenue changes day by day.
-
-### What you can do
-
-- Change Year, Month, and/or Cities. All numbers and charts update.
-- Compare with the Demand Analysis page: e.g. “Lots of trips at 8am but revenue is also high then” helps you understand when demand and revenue line up.
-
-### Why it’s useful
-
-- See which hours and days bring in the most revenue.
-- Use it together with Demand to understand if high demand also means high revenue (e.g. pricing or surge effects).
+Your starting point. It explains what the app does and lists the other pages. Use the **navigation bar above** (not the sidebar) to open Overview, Demand & Revenue, Exposure Analysis, or Churn Predictor.
 
 ---
 
-## 8. Exposure Analysis Page
+### Overview
 
-### What it’s for
+**What it answers:** *“What does our business look like right now?”*
 
-Exposure Analysis answers: **“How much revenue could we lose if we don’t win back customers who might be drifting away?”** You choose a **number of days** (e.g. “customers who haven’t ridden in 7 days”). The page then shows how much revenue those customers represent and breaks it down by **customer segment** (e.g. “Regular Commuters,” “At Risk Users”). You also get a list of those customers so you can target re-engagement (e.g. emails or offers).
+- **Summary cards:** Total users, total trips, total revenue.
+- **Filters:** City and Loyalty Tier. Choose “All” or pick one (e.g. one city, one tier). The numbers and charts update.
+- **Charts:**  
+  - Share of users in each loyalty tier (e.g. Bronze, Silver, Gold).  
+  - Number of users per city.
 
-### What you’ll see
-
-- **In the sidebar:** A **slider** — “Days since last activity.” You can pick from 7 up to 90 days (in steps of 7). Default is 7.
-- **At the top:** Three pieces of info:
-  - **Revenue at Risk** — total revenue linked to the “at risk” customers (shown in pounds £).
-  - **Customers Exposed** — how many customers that is.
-  - **Date Range** — the range of “last trip” dates for those customers.
-- **Charts and table:**
-  - A **treemap** — each block is a customer segment; the size of the block shows how much of the “revenue at risk” comes from that segment. You can hover to see the amount.
-  - A **table** — the list of at-risk customers (without the “last trip” date column) so you can see who they are.
-
-### What you can do
-
-- Move the **slider** to different values (e.g. 7, 14, 30, 90 days). The numbers, treemap, and table all update. A higher number of days usually means more customers and more “revenue at risk.”
-
-### Why it’s useful
-
-- Decide how much to invest in re-engagement (emails, discounts, etc.) by seeing how much revenue is tied to potentially inactive customers.
-- See which segments matter most (big blocks in the treemap) and who to contact (the table).
+**Use it when:** You want a quick snapshot or to compare one city or tier to the rest.
 
 ---
 
-## 9. Map Hotspots Page
+### Demand & Revenue
 
-### What it’s for
+**What it answers:** *“When do rides happen?”* and *“When does revenue come in?”*
 
-Map Hotspots answers: **“Where do pickups and dropoffs concentrate?”** It shows two maps: one where **pickups** are most common (hexagon hotspots) and one where **dropoffs** are most common. Useful for deciding where to position drivers or run local campaigns. This page uses its own dataset and does not use the same date or city filters as the other pages — it’s a fixed snapshot.
+This is **one page with two tabs** at the top:
 
-### What you’ll see
+- **Demand Analysis** — Trips per hour of the day and trips per day. Helps you see peak times and plan driver supply.
+- **Revenue Analysis** — Revenue per hour and revenue per day. Helps you see when you earn the most.
 
-- A title: **“Pickup & Dropoff Hotspots Map.”**
-- **First map:** Pickup hotspots — darker/bigger hexagons = more pickups in that area.
-- **Second map:** Dropoff hotspots — same idea for dropoffs.
-- No filters in the sidebar on this page.
+**Filters (same for both tabs):** Year, Month, City. Each can be set to “All” or a single option. Four summary cards (users, trips, revenue, average fare) sit above the tabs and also react to the filters.
 
-### What you can do
-
-- **Pan and zoom** on each map to explore. You can move around and zoom in to see specific areas.
-- The maps don’t change when you go to other pages or change filters elsewhere; what you see is based on a single dataset loaded for this page.
-
-### Why it’s useful
-
-- Find busy areas for pickups and dropoffs to plan where to have more drivers or where to promote the service.
+**Use it when:** You want to see patterns over time (e.g. busy hours, busy days) or compare demand and revenue side by side.
 
 ---
 
-*End of User Guide. For technical details (data sources, code structure), see the development team or the codebase.*
+### Exposure Analysis
+
+**What it answers:** *“How much revenue could we lose if we don’t win back customers who haven’t ridden in a while?”*
+
+- **Filter:** A slider for “days since last activity” (e.g. 7, 14, 30, 90 days). You decide what counts as “inactive.”
+- **Summary:** Revenue at risk, number of customers in that group, and a breakdown by customer segment.
+- **Charts and list:** A visual breakdown of which segments hold the most at-risk revenue, and a list of those customers so you know who to re-engage.
+
+**Use it when:** You want to decide how much to invest in win-back campaigns and who to target first.
+
+---
+
+### Churn Predictor
+
+**What it answers:** *“Is this rider (or these riders) likely to leave? What should we do about it?”*
+
+Two ways to use it:
+
+1. **Single Predict**  
+   - Fill in one rider’s details: how long since last trip, number of trips, spend, tips, rating, loyalty tier, city, segment, etc.  
+   - Click **“Predict Churn Risk.”**  
+   - A **pop-up** appears with: churn probability, risk level (Low / Medium / High), and a **recommendation** (e.g. “Send a limited-time offer,” “Give recognition or perks”).  
+   - Close the pop-up when you’re done; the main form stays as is.
+
+2. **Batch Predict**  
+   - Upload a file (e.g. CSV) with many riders and the same kinds of columns.  
+   - The app runs the prediction for each row and lets you download the results (probability, risk level, etc.).
+
+The **About** tab on this page describes the inputs and outputs in a bit more detail, still in plain language.
+
+**Use it when:** You want to prioritize retention actions or decide what offer or message to send to a rider or a list of riders.
+
+---
+
+## Summary
+
+| Page              | What you get |
+|-------------------|--------------|
+| **Home**          | Intro and links to all other pages. |
+| **Overview**      | Big-picture numbers and charts by city and loyalty. |
+| **Demand & Revenue** | When rides and revenue happen (two tabs), with filters. |
+| **Exposure Analysis** | Revenue at risk from inactive customers and who they are. |
+| **Churn Predictor**   | Churn risk and recommendations for one rider or many. |
+
+---
+
+## For people who want a bit more detail
+
+- The app is built with **Streamlit** (the part you see) and a small **FastAPI** service (the part that runs the churn model).
+- Data is loaded from files or sources set up in the project (e.g. trip data, segment data). The exact path is in the project setup.
+- The churn model uses things like “days since last trip,” “number of trips,” “spend,” “loyalty tier,” “city,” and “customer segment” to score how likely a rider is to churn and to suggest an action. All of that is done behind the scenes; you only fill in the form or upload a file.
+
+---
+
+*This README is kept free of heavy jargon so anyone can understand what the project does and how to use it. For full technical details, see the code and the rest of the repository.*

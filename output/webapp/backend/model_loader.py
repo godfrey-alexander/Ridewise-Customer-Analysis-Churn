@@ -5,6 +5,12 @@ from pathlib import Path
 import pandas as pd
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+MODEL_PATH = BASE_DIR / "model" / "rf_churn_model.joblib"
+METADATA_PATH = BASE_DIR / "model" / "rf_churn_model_metadata.joblib"
+PREPROCESSOR_PATH = BASE_DIR / "model" / "preprocessor.joblib"
+
+MODEL_PATH = BASE_DIR / "model" / "lg_churn_model.joblib"
+METADATA_PATH = BASE_DIR / "model" / "lg_churn_model_metadata.joblib"
 
 
 def _patch_tree_monotonic_cst(estimator):
@@ -18,12 +24,7 @@ def _patch_tree_monotonic_cst(estimator):
         except (AttributeError, TypeError):
             pass
 
-MODEL_PATH = BASE_DIR / "model" / "rf_churn_model.joblib"
-METADATA_PATH = BASE_DIR / "model" / "rf_churn_model_metadata.joblib"
-PREPROCESSOR_PATH = BASE_DIR / "model" / "preprocessor.joblib"
 
-MODEL_PATH = BASE_DIR / "model" / "lg_churn_model.joblib"
-METADATA_PATH = BASE_DIR / "model" / "lg_churn_model_metadata.joblib"
 
 # Column order for raw features (must match 03_SHAP X before transform)
 RAW_FEATURE_ORDER = [
@@ -54,6 +55,7 @@ class ChurnModelService:
         self.metadata = None
         self.threshold = 0.5
         self.feature_columns = []
+        self.thr_mid = 0.65
 
         if not MODEL_PATH.exists() or not METADATA_PATH.exists():
             raise FileNotFoundError(
@@ -92,12 +94,9 @@ class ChurnModelService:
 
         # Reconstruct the DataFrame
         transformed_data = pd.DataFrame(X_t, columns=column_names)
-        print(f"transformed_X: \n{transformed_data}")
         try:
             proba = self.model.predict_proba(transformed_data)[:, 1]
-            # the result of this is showing a probability of 2.2488945 where as the notebook is showing [0.08]
-            # this is causing the prediction to be 224% which is not correct
-            # we need to fix this by ensuring the probability is in the range of 0-1
+
             print(f'probability: {proba}')
         except ValueError as e:
             if "features" in str(e).lower() or "shape" in str(e).lower():
@@ -116,15 +115,52 @@ class ChurnModelService:
         label = int(proba >= self.threshold)
         return label, proba
 
-    def risk_level(self, proba: float) -> str:
-        if proba < 0.25:
-            return "Low"
-        if proba < 0.5:
-            return "Medium"
-        if proba < 0.75:
-            return "High"
-        return "Critical"
+    def risk_level(self, proba: float, threshold: float, thr_mid: float = 0.65) -> str:
+        if proba < threshold:
+            return "Low Risk"
+        if proba < thr_mid:
+            return "Medium Risk"
+        else:
+            return "High Risk"
 
+
+    def recommendation(self, rfms_segment: str, risk_level: str) -> str:
+        """
+        Business rule mapping: RFMS segment × churn risk → recommended action.
+        This is NOT machine learning; it's decision logic based on your project strategy.
+        """
+
+        if risk_level == "High Risk":
+            if rfms_segment == "At Risk":
+                return "Highest priority: churn-prevention package (credits + surge relief + service recovery)"
+            if rfms_segment == "Core Loyal Riders":
+                return "VIP win-back: targeted credit + service recovery + feedback request"
+            if rfms_segment == "Occasional Riders":
+                return "Reactivation: limited-time discount + convenience messaging"
+            if rfms_segment == "High-Value Surge-Tolerant":
+                return "White-glove retention: personalized outreach + priority support"
+
+        if risk_level == "Medium Risk":
+            if rfms_segment == "At Risk":
+                return "Targeted off-peak discount + education on saving/avoiding surge"
+            if rfms_segment == "Core Loyal Riders":
+                return "Reinforce loyalty: bonus points + gentle reminder"
+            if rfms_segment == "Occasional Riders":
+                return "Activation: time-limited offer for next ride"
+            if rfms_segment == "High-Value Surge-Tolerant":
+                return "Recognition: perks (no discounts) + premium experience"
+
+        # Low Risk
+        if rfms_segment == "High-Value Surge-Tolerant":
+            return "Reward/recognition (no discounts): perks, priority support, surprise upgrades"
+        if rfms_segment == "Core Loyal Riders":
+            return "Maintain loyalty: points boosts, referrals, cross-sell bundles"
+        if rfms_segment == "Occasional Riders":
+            return "Engagement nudges: seasonal campaigns, feature prompts"
+        if rfms_segment == "At Risk":
+            return "Monitor: low-cost reminders + reduce friction (payments/app UX)"
+
+        return "No action rule defined"
 
 try:
     model_service = ChurnModelService()

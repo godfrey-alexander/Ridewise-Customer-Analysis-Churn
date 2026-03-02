@@ -50,14 +50,24 @@ def predict_churn(features: ChurnFeatures):
         raise HTTPException(503, "Model not loaded. Train and save the model first.")
     try:
         features_dict = features.model_dump()
+        
         label, proba = model_service.predict_label(features_dict)
-        risk = model_service.risk_level(proba)
-        print(f"Churn probability: {proba}, \n Churn label: {label}, \n Risk level: {risk}")
+        
+        risk = model_service.risk_level(proba, model_service.threshold, model_service.thr_mid)
+        
+        recommendation = model_service.recommendation(features_dict["RFMS_segment"], risk)
+        
+        print(f"Churn probability: {proba})")
+        print(f"Churn label: {label}")
+        print(f"Risk level: {risk}")
+        print(f"Recommendation: {recommendation}")
+        
         return ChurnPredictionResponse(
             churn_probability=proba,
             churn_label=label,
             threshold=model_service.threshold,
             risk_level=risk,
+            recommendation=recommendation,
         )
     except Exception as e:
         raise HTTPException(500, detail=f"Prediction failed: {type(e).__name__}: {e}")
