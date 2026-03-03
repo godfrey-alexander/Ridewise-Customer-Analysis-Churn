@@ -7,7 +7,7 @@ try:
 except ImportError:
     inject_background_style = lambda: None
 
-response = requests.get("https://ridewise-churn-api.onrender.com/health")
+response = requests.get("https://ridewise-churn-api-wk3k.onrender.com/health")
 
 st.set_page_config(
     page_title="RideWise Dashboard",
