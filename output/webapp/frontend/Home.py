@@ -1,10 +1,13 @@
 import streamlit as st
 from style import inject_sidebar_style
+import requests
 
 try:
     from style import inject_background_style
 except ImportError:
     inject_background_style = lambda: None
+
+response = requests.get("https://ridewise-churn-api.onrender.com/health")
 
 st.set_page_config(
     page_title="RideWise Dashboard",
