@@ -458,9 +458,15 @@ The application consists of a **Streamlit frontend** (multi-page) and a **FastAP
   `CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]`.  
   For a frontend container, override the command to run Streamlit and ensure `API_URL` points to the API service (e.g. in `render.yaml`).
 
-### Render.com
 
-- `render.yaml` defines two services (API and frontend). Set the frontend’s `API_URL` to the deployed API URL after the first deploy.
+
+### Railway
+
+- Deploy the webapp as **two Railway services** from the same repo:
+  1. **Backend:** Root directory `output/webapp`, use the existing Dockerfile (default start runs the FastAPI API). Railway sets `PORT` automatically.
+  2. **Frontend:** Root directory `output/webapp`, same Dockerfile with a **custom start command**:  
+     `streamlit run frontend/Home.py --server.port $PORT --server.address 0.0.0.0 --server.headless true`  
+     Set the `API_URL` variable to the backend service’s public URL (e.g. `https://your-backend.up.railway.app`).
 
 ---
 
