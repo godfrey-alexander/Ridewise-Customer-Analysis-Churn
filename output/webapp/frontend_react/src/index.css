@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+    --card: 222 25% 12%;
+    --card-foreground: 210 40% 98%;
+    --primary: 190 100% 50%;
+    --primary-foreground: 222 47% 6%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 263 70% 58%;
+    --accent-foreground: 210 40% 98%;
+    --border: 217 33% 18%;
+  }
+
+  * {
+    @apply border-dashboard-border/50;
+  }
+
+  body {
+    @apply text-foreground font-sans antialiased;
+    background-color: #0e1117;
+    background-image:
+      linear-gradient(135deg, rgba(14, 17, 23, 0.91) 0%, rgba(26, 29, 36, 0.9) 50%, rgba(13, 17, 23, 0.91) 100%),
+      url('/assets/background.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+}
+
+@media (max-width: 1023px) {
+  body {
+    background-attachment: scroll;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+
+  .card-hover {
+    @apply transition-all duration-200 hover:border-dashboard-glow/30 hover:shadow-glow-sm;
+  }
+}
+
+/* Recharts tooltip/cartesian grid in dark theme */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: rgba(255, 255, 255, 0.06);
+}
+.recharts-text {
+  fill: hsl(var(--muted-foreground));
+}
