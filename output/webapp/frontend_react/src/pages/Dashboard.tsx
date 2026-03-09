@@ -1,6 +1,13 @@
 import { Link } from 'react-router-dom'
-import { LayoutDashboard, BarChart3, AlertTriangle, Brain, Database, ArrowRight } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
+import { 
+  LayoutDashboard, 
+  BarChart3, 
+  AlertTriangle, 
+  Brain, 
+  // Database, 
+  ArrowRight 
+} from 'lucide-react'
 
 const sections = [
   {
